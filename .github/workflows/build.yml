@@ -1,3 +1,4 @@
+
 name: Build APK
 
 on:
@@ -10,13 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ئەگەر project.zip لە ڕیپۆکەدا هەبێت، دەکرێتەوە
-      - name: Unpack project.zip
+      # هەر zip ێک (تەنانەت ناو zip ی تر) دەکاتەوە تا settings.gradle.kts بدۆزێتەوە
+      - name: Unpack project
         run: |
-          if [ -f project.zip ]; then
-            unzip -o project.zip
-          fi
-          ls -la
+          for i in 1 2 3; do
+            if [ -z "$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)" ]; then
+              find . -name '*.zip' -not -path './.git/*' -print0 | while IFS= read -r -d '' z; do
+                unzip -o -q "$z" -d "$(dirname "$z")" || true
+              done
+            fi
+          done
+          F=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)
+          if [ -z "$F" ]; then echo "settings.gradle.kts نەدۆزرایەوە"; ls -R | head -50; exit 1; fi
+          echo "PROJECT_DIR=$(dirname "$F")" >> "$GITHUB_ENV"
+          echo "Project dir: $(dirname "$F")"
 
       - uses: actions/setup-java@v4
         with:
@@ -28,9 +36,10 @@ jobs:
           gradle-version: "8.9"
 
       - name: Build debug APK
+        working-directory: ${{ env.PROJECT_DIR }}
         run: gradle assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
           name: MangaTranslator-debug-apk
-          path: app/build/outputs/apk/debug/وەڕگێڕی_شاشە.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/وەڕگێڕی_شاشە.apk
