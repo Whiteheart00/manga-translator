@@ -72,3 +72,4 @@ jobs:
         with:
           name: MangaTranslator-debug-apk
           path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/وەڕگێڕی_شاشە.apk
+.
