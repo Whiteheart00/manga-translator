@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           KEY_TMP="$(mktemp)"
           trap 'rm -f "$KEY_TMP"' EXIT
-          CANDIDATE="app/debug.keystore"
+          CANDIDATE="app/manga-release.keystore"
           if [ -n "$SIGNING_KEY_BASE64" ]; then
             printf '%s' "$SIGNING_KEY_BASE64" | base64 --decode > "$KEY_TMP"
             CANDIDATE="$KEY_TMP"
@@ -52,16 +52,16 @@ jobs:
             echo "::error::Add the original key to the ANDROID_DEBUG_KEYSTORE_BASE64 repository secret."
             exit 1
           fi
-          EXPECTED="6ccb72cc9b04d85728bf324e95ec66638dd9adb7c3646d0e43d0c9c01e65bb92"
-          ACTUAL="$(keytool -exportcert -keystore "$CANDIDATE" -storepass android -alias androiddebugkey | sha256sum | cut -d ' ' -f1)"
+          EXPECTED="6457ae30a77da64cab8e827408de74f081b1a659c715c61011e2dff01378dfff"
+          ACTUAL="$(keytool -exportcert -keystore "$CANDIDATE" -storepass android -alias manga | sha256sum | cut -d ' ' -f1)"
           if [ "$ACTUAL" != "$EXPECTED" ]; then
             echo "::error::Wrong signing certificate. The APK must use the recovered original key."
             exit 1
           fi
           if [ "$CANDIDATE" = "$KEY_TMP" ]; then
-            mv "$KEY_TMP" app/debug.keystore
+            mv "$KEY_TMP" app/manga-release.keystore
           fi
-          chmod 600 app/debug.keystore
+          chmod 600 app/manga-release.keystore
           echo "Original signing certificate verified."
 
       - name: Build debug APK
